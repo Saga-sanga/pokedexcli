@@ -60,5 +60,12 @@ func getCommands() map[string]cliCommand {
 				return displayHelp(os.Stdout)
 			},
 		},
+		"map": {
+			description: "Displays different locations in the world",
+			name:        "map",
+			callback: func() error {
+				return displayMap(os.Stdout)
+			},
+		},
 	}
 }
