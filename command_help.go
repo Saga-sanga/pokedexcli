@@ -2,15 +2,14 @@ package main
 
 import (
 	"fmt"
-	"io"
 )
 
-func displayHelp(out io.Writer) error {
-	fmt.Fprintln(out)
-	fmt.Fprintln(out, "Welcome to the Pokedex!\nUsage:")
-	fmt.Fprintln(out)
+func commandHelp(cfg *config) error {
+	fmt.Println()
+	fmt.Println("Welcome to the Pokedex!\nUsage:")
+	fmt.Println()
 	for _, command := range getCommands() {
-		fmt.Fprintf(out, "%v: %v\n", command.name, command.description)
+		fmt.Printf("%v: %v\n", command.name, command.description)
 	}
 	return nil
 }

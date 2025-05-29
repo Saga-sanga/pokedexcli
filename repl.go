@@ -5,16 +5,17 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/saga-sanga/pokedexcli/internal/pokeapi"
 )
 
-type cliCommand struct {
-	name        string
-	description string
-	callback    func() error
+type config struct {
+	pokeapiClient    pokeapi.Client
+	nextLocationsURL *string
+	prevLocationsURL *string
 }
 
-func startRepl() {
-
+func startRepl(cfg *config) {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
@@ -28,7 +29,7 @@ func startRepl() {
 
 		command, exists := getCommands()[words[0]]
 		if exists {
-			err := command.callback()
+			err := command.callback(cfg)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -46,6 +47,12 @@ func cleanInput(text string) []string {
 	return splitWords
 }
 
+type cliCommand struct {
+	name        string
+	description string
+	callback    func(*config) error
+}
+
 func getCommands() map[string]cliCommand {
 	return map[string]cliCommand{
 		"exit": {
@@ -56,16 +63,17 @@ func getCommands() map[string]cliCommand {
 		"help": {
 			description: "Displays the help message",
 			name:        "help",
-			callback: func() error {
-				return displayHelp(os.Stdout)
-			},
+			callback:    commandHelp,
 		},
 		"map": {
-			description: "Displays different locations in the world",
+			description: "Get the next page of locations",
 			name:        "map",
-			callback: func() error {
-				return displayMap(os.Stdout)
-			},
+			callback:    commandMapf,
+		},
+		"mapb": {
+			description: "Get the previous page of locations",
+			name:        "mapb",
+			callback:    commandMapb,
 		},
 	}
 }
