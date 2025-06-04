@@ -10,19 +10,28 @@ type cacheEntry struct {
 	val       []byte
 }
 
+// Cache -
 type Cache struct {
-	mu      sync.Mutex
+	sync.Mutex
 	entries map[string]cacheEntry
 }
 
+// Add -
 func (c *Cache) Add(key string, val []byte) {
+	c.Lock()
+	defer c.Unlock()
+
 	c.entries[key] = cacheEntry{
 		createdAt: time.Now(),
 		val:       val,
 	}
 }
 
+// Get -
 func (c *Cache) Get(key string) ([]byte, bool) {
+	c.Lock()
+	c.Unlock()
+
 	entry, exists := c.entries[key]
 	if exists {
 		return entry.val, true
@@ -32,23 +41,29 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 
 func (c *Cache) reapLoop(interval time.Duration) {
 	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
+	done := make(chan struct{})
 
 	go func() {
-		for range ticker.C {
-			// reaping process
-			c.mu.Lock()
-			for key, entry := range c.entries {
-				timeDifference := time.Now().Sub(entry.createdAt)
-				if timeDifference > interval {
-					delete(c.entries, key)
+		for {
+			select {
+			case <-ticker.C:
+				// reaping process
+				c.Lock()
+				for key, entry := range c.entries {
+					if time.Since(entry.createdAt) >= interval {
+						delete(c.entries, key)
+					}
 				}
+				c.Unlock()
+			case <-done:
+				ticker.Stop()
+				return
 			}
-			c.mu.Unlock()
 		}
 	}()
 }
 
+// NewCache -
 func NewCache(interval time.Duration) *Cache {
 	cache := &Cache{entries: make(map[string]cacheEntry)}
 	cache.reapLoop(interval)

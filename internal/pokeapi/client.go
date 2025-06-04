@@ -14,11 +14,11 @@ type Client struct {
 }
 
 // NewClient -
-func NewClient(timeout time.Duration, pokecache *pokecache.Cache) Client {
+func NewClient(timeout time.Duration, cacheInterval time.Duration) Client {
 	return Client{
 		httpClient: http.Client{
 			Timeout: timeout,
 		},
-		pokecache: pokecache,
+		pokecache: pokecache.NewCache(cacheInterval),
 	}
 }

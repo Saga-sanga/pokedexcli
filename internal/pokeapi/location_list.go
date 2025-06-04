@@ -13,6 +13,20 @@ func (c *Client) ListLocations(pageURL *string) (RespShallowLocations, error) {
 		url = *pageURL
 	}
 
+	locationsResp := RespShallowLocations{}
+
+	// check if url already exists
+	data, exists := c.pokecache.Get(url)
+
+	// return data without fetching if exists
+	if exists {
+		err := json.Unmarshal(data, &locationsResp)
+		if err != nil {
+			return RespShallowLocations{}, nil
+		}
+		return locationsResp, nil
+	}
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return RespShallowLocations{}, err
@@ -29,11 +43,12 @@ func (c *Client) ListLocations(pageURL *string) (RespShallowLocations, error) {
 		return RespShallowLocations{}, err
 	}
 
-	locationsResp := RespShallowLocations{}
 	err = json.Unmarshal(dat, &locationsResp)
 	if err != nil {
 		return RespShallowLocations{}, err
 	}
+
+	c.pokecache.Add(url, dat)
 
 	return locationsResp, nil
 }
