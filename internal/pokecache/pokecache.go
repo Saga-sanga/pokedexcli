@@ -48,19 +48,23 @@ func (c *Cache) reapLoop(interval time.Duration) {
 			select {
 			case <-ticker.C:
 				// reaping process
-				c.Lock()
-				for key, entry := range c.entries {
-					if time.Since(entry.createdAt) >= interval {
-						delete(c.entries, key)
-					}
-				}
-				c.Unlock()
+				c.reap(interval)
 			case <-done:
 				ticker.Stop()
 				return
 			}
 		}
 	}()
+}
+
+func (c *Cache) reap(interval time.Duration) {
+	c.Lock()
+	defer c.Unlock()
+	for key, entry := range c.entries {
+		if time.Since(entry.createdAt) >= interval {
+			delete(c.entries, key)
+		}
+	}
 }
 
 // NewCache -
