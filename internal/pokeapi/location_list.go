@@ -15,6 +15,7 @@ func (c *Client) ListLocations(pageURL *string) (RespShallowLocations, error) {
 
 	locationsResp := RespShallowLocations{}
 
+	// Check cache
 	// check if url already exists
 	data, exists := c.pokecache.Get(url)
 
