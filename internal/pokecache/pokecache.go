@@ -30,7 +30,7 @@ func (c *Cache) Add(key string, val []byte) {
 // Get -
 func (c *Cache) Get(key string) ([]byte, bool) {
 	c.Lock()
-	c.Unlock()
+	defer c.Unlock()
 
 	entry, exists := c.entries[key]
 	if exists {
